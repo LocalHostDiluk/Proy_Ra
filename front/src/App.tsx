@@ -1,6 +1,13 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AlumnosAgregar, ContenidoA, HomeA } from "./screens";
+import {
+  AlumnosAgregar,
+  AlumnosConsultar,
+  AlumnoModificar,
+  ContenidoA,
+  HomeA,
+  AlumnoEliminar,
+} from "./screens";
 
 function App() {
   return (
@@ -10,6 +17,9 @@ function App() {
           <Route path="/" element={<HomeA />}>
             <Route index element={<ContenidoA />} />
             <Route path="agregar" element={<AlumnosAgregar />} />
+            <Route path="consultar" element={<AlumnosConsultar />} />
+            <Route path="modificar" element={<AlumnoModificar />} />
+            <Route path="eliminar" element={<AlumnoEliminar />} />
           </Route>
         </Routes>
       </BrowserRouter>

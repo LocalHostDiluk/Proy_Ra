@@ -1,32 +1,49 @@
-import React, { useState } from "react";
-import { Button, Form, Row, Col, FloatingLabel, Container } from "react-bootstrap";
-import "sweetalert2/dist/sweetalert2.css";
-import Swal from "sweetalert2";
 import axios from "axios";
+import React, { useState } from "react";
+import {
+  Row,
+  Col,
+  FloatingLabel,
+  Button,
+  Container,
+  InputGroup,
+  Form,
+} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.css";
 
 type alumnoEstructura = {
-  matricula: string,
-  aPaterno: string,
-  aMaterno: string,
-  nombre: string,
-  sexo: string,
-  dCalle: string,
-  dNumero: number,
-  dColonia: string,
-  dCodigoPostal: number,
-  aTelefono: string,
-  aCorreo: string,
-  aFacebook: string,
-  aInstagram: string,
-  aTipoSangre: string,
-  nombreContacto: string,
-  telefonoContacto: string,
-  contraseña: string,
+  matricula: string;
+  aPaterno: string;
+  aMaterno: string;
+  nombre: string;
+  sexo: string;
+  dCalle: string;
+  dNumero: number;
+  dColonia: string;
+  dCodigoPostal: number;
+  aTelefono: string;
+  aCorreo: string;
+  aFacebook: string;
+  aInstagram: string;
+  aTipoSangre: string;
+  nombreContacto: string;
+  telefonoContacto: string;
+  contraseña: string;
 };
 
+type botonesEstado = {
+  btnGuardar: boolean;
+  btnCancelar: boolean;
+};
 
-const initialState:alumnoEstructura = {
+const initialStateBtn: botonesEstado = {
+  btnGuardar: true,
+  btnCancelar: true,
+};
+
+const initialState: alumnoEstructura = {
   matricula: "",
   aPaterno: "",
   aMaterno: "",
@@ -46,8 +63,11 @@ const initialState:alumnoEstructura = {
   contraseña: "",
 };
 
-function AlumnosAgregar() {
+function AlumnoModificar() {
   const [alumno, setAlumno] = useState(initialState);
+  const [botones, setBotones] = useState(initialStateBtn);
+  const [mat, setMat] = useState("");
+
   const {
     matricula,
     aPaterno,
@@ -75,29 +95,42 @@ function AlumnosAgregar() {
     setAlumno({ ...alumno, [name]: value });
   };
 
+  const handleMatChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    let { value } = e.target;
+    setMat(value);
+  };
+
+  const handleCancelar = (): void => {
+    setAlumno(initialState);
+    setBotones(initialStateBtn);
+  };
+
   const handleSelectChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ): void => {
     let { name, value } = e.target;
     setAlumno({ ...alumno, [name]: value });
   };
-  
-  const handleCancelar = (): void => {
-    setAlumno(initialState);
-  };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    console.log(alumno);
-
-    addAlumno(alumno)
-  };
-
-  const addAlumno = async (data: alumnoEstructura) => {
+  const alumnoConsultar = async () => {
+    const mat1 = mat === "" ? 0 : mat;
     const response = await axios
-      .post("http://localhost:5000/alumno/agregar", data)
+      .get(`http://localhost:5000/alumno/traer/${mat1}`)
       .then((response) => {
-        notify(response.data.status);
+        if (response.data.status === 200) {
+          if (response.data.result.length > 0) {
+            setAlumno(response.data.result[0]);
+            setBotones({
+              btnGuardar: false,
+              btnCancelar: false,
+            });
+          } else {
+            setAlumno(initialState);
+            notify(101);
+          }
+        } else {
+          console.error("Error al consultar el alumno:", response.data.message);
+        }
       });
   };
 
@@ -111,7 +144,8 @@ function AlumnosAgregar() {
       });
       handleCancelar();
       navigate("/");
-    } else {
+    }
+    if (status === 100) {
       Swal.fire({
         title: "Error!",
         text: "No se pudo guardar el alumno",
@@ -119,38 +153,82 @@ function AlumnosAgregar() {
         confirmButtonText: "Inténtalo de nuevo",
       });
     }
+    if (status === 101) {
+      Swal.fire({
+        title: "No encontrado!",
+        text: "No se encontró el alumno con esa matrícula",
+        icon: "warning",
+        confirmButtonText: "Inténtalo de nuevo",
+      });
+    }
+  };
+
+  const modificarAlumno = async (data: alumnoEstructura) => {
+    const response = await axios
+      .post("http://localhost:5000/alumno/modificar", data)
+      .then((response) => {
+        notify(response.data.status);
+        setAlumno(initialState);
+        setBotones(initialStateBtn);
+        setMat("");
+      });
+
+    setTimeout(() => navigate("/"), 2000);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+
+    modificarAlumno(alumno);
+    // console.log(alumno);
   };
 
   return (
     <Container fluid>
-      <Form onSubmit={handleSubmit}>
-        <Row>
-          <Col>
-            <div className="fs-3">Ingrese sus datos</div>
-          </Col>
-        </Row>
+      <Row className="mt-3">
+        <Col>
+          <div className="fs-3">Ingrese sus datos</div>
+        </Col>
+      </Row>
 
-        <Row className="mt-4">
-          <Col> </Col>
+      <Row className="mt-3">
+        <Col>&nbsp;</Col>
+        <Col className="bg-secondary pt-4 pb-4">
+          <InputGroup>
+            <Button
+              id="button-addon1"
+              style={{ background: "#454545" }}
+              onClick={alumnoConsultar}
+            >
+              Buscar
+            </Button>
+            <FloatingLabel label="Ingresa la matricula a buscar">
+              <Form.Control
+                name="matricula"
+                type="text"
+                placeholder="Ingresa la matricula a buscar"
+                value={mat}
+                onChange={handleMatChange}
+              />
+            </FloatingLabel>
+          </InputGroup>
+        </Col>
+        <Col>&nbsp;</Col>
+      </Row>
+
+      <Row className="mt-3">
+        <Col>Buscar</Col>
+      </Row>
+      <Form onSubmit={handleSubmit}>
+        <Row className="mt-3">
+          <Col>&nbsp;</Col>
           <Col>
             <FloatingLabel label="Matricula">
               <Form.Control
                 name="matricula"
                 type="text"
+                disabled={true}
                 placeholder="Ingresa tu matricula"
-                value={matricula}
-                onChange={handleInputChange}
-                required
-              />
-            </FloatingLabel>
-          </Col>
-          <Col>
-            <FloatingLabel label="Contraseña">
-              <Form.Control
-                name="contraseña"
-                type="text"
-                placeholder="Ingresa tu contraseña"
-                value={contraseña}
                 onChange={handleInputChange}
                 required
               />
@@ -392,12 +470,22 @@ function AlumnosAgregar() {
         <Row className="mt-3">
           <Col> </Col>
           <Col>
-            <Button type="submit" className="btn btn-primary">
+            <Button
+              type="submit"
+              disabled={botones.btnGuardar}
+              className="btn btn-primary"
+            >
               Guardar
             </Button>
           </Col>
           <Col>
-            <Button className="btn btn-info" onClick={handleCancelar}>Cancelar</Button>
+            <Button
+              className="btn btn-info"
+              disabled={botones.btnCancelar}
+              onClick={handleCancelar}
+            >
+              Cancelar
+            </Button>
           </Col>
           <Col> </Col>
         </Row>
@@ -410,4 +498,4 @@ function AlumnosAgregar() {
   );
 }
 
-export default AlumnosAgregar;
+export default AlumnoModificar;

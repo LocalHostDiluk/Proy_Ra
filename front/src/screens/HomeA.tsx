@@ -13,17 +13,13 @@ function HomeA() {
               <Nav className="me-auto">
                 <Nav.Link href="/">Home</Nav.Link>
                 <NavDropdown title="Acciones" id="basic-nav-dropdown">
-                  <NavDropdown.Item href="agregar">
-                    Agregar
-                  </NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.2">
+                  <NavDropdown.Item href="agregar">Agregar</NavDropdown.Item>
+                  <NavDropdown.Item href="modificar">
                     Modificar
                   </NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.3">
-                    Eliminar
-                  </NavDropdown.Item>
+                  <NavDropdown.Item href="eliminar">Eliminar</NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item href="#action/3.4">
+                  <NavDropdown.Item href="consultar">
                     Consultar
                   </NavDropdown.Item>
                 </NavDropdown>
